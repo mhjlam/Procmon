@@ -66,6 +66,11 @@
     <Compile Include="Sensors\GpuCoreSensor.cs" />
     <Compile Include="Sensors\GpuVideoSensor.cs" />
     <Compile Include="Sensors\GpuVramSensor.cs" />
+    <Compile Include="Sensors\Nvidia\NvidiaDetection.cs" />
+    <Compile Include="Sensors\Nvidia\NvidiaGpuCoreSensor.cs" />
+    <Compile Include="Sensors\Nvidia\NvidiaGpuVideoSensor.cs" />
+    <Compile Include="Sensors\Nvidia\NvidiaGpuVramSensor.cs" />
+    <Compile Include="Sensors\Nvidia\NvmlInterop.cs" />
     <Compile Include="Sensors\RamSensor.cs" />
     <Compile Include="Services\ConsoleService.cs" />
     <Compile Include="Services\ExportService.cs" />

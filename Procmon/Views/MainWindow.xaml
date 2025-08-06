@@ -1,7 +1,7 @@
 <Window x:Class="Procmon.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Process Performance Monitor" Height="900" Width="1400" MinHeight="700" MinWidth="1000"
+        Title="Procmon" Height="900" Width="1400" MinHeight="700" MinWidth="1000"
         Background="#FF1E1E1E" WindowStyle="SingleBorderWindow" ResizeMode="CanResize"
         UseLayoutRounding="True" SnapsToDevicePixels="True" TextOptions.TextFormattingMode="Display" TextOptions.TextRenderingMode="ClearType"
         WindowStartupLocation="CenterScreen">

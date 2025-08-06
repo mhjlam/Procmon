@@ -1,217 +1,219 @@
-# Procmon
+# Procmon: Process Performance Monitor
 
-Procmon is a Windows application for monitoring system process performance in real-time. It supports both graphical user interface (GUI) and command-line interface (CLI) modes, providing flexible monitoring capabilities for CPU usage, memory consumption, and GPU utilization. The application features comprehensive sensor data collection, CSV logging, and real-time visualization with WPF-based charts and statistics.
+Procmon is a .NET Framework 4.8 WPF application that provides real-time monitoring of system performance metrics including CPU, RAM, and GPU usage. The application features both a graphical interface and command-line operation modes.
+
+![Procmon Main View](procmon.png)
+*Procmon's main view with real-time performance chart.*
 
 ## Features
 
+### Core Monitoring Capabilities
+- **CPU Usage**: Process-specific CPU utilization monitoring
+- **RAM Usage**: Memory consumption tracking (both absolute and percentage)
+- **GPU Core Usage**: Graphics processing unit core utilization
+- **GPU Video Engine**: Video encoding/decoding engine utilization
+- **GPU VRAM Usage**: Video memory consumption tracking
+
+### Advanced NVIDIA GPU Support
+The application now includes enhanced NVIDIA GPU monitoring using the NVIDIA Management Library (NVML) with intelligent fallback mechanisms:
+
+#### NVML Integration
+- **Direct NVIDIA Access**: Uses NVIDIA's official NVML (NVIDIA Management Library) for accurate GPU metrics
+- **Real VRAM Detection**: Automatically detects actual GPU memory size instead of using estimates
+- **Comprehensive GPU Data**: Access to detailed GPU utilization, memory usage, and encoder/decoder statistics
+- **Multi-GPU Aware**: Designed to support multiple NVIDIA GPUs (currently uses first detected GPU)
+
+#### Fallback Mechanisms
+- **Performance Counter Fallback**: Automatically falls back to Windows Performance Counters if NVML is unavailable
+- **Error Resilience**: Graceful handling of missing drivers or unsupported hardware
+- **Compatibility**: Works on systems without NVIDIA GPUs or with older driver versions
+
+### User Interface
+- **Real-time Charts**: Live performance visualization
+- **Statistics Panel**: Min/max/average calculations
+- **Process Selection**: Easy switching between monitored processes
+- **Settings Configuration**: Customizable monitoring intervals and sensors
+
+### Data Export & Logging
+- **CSV Export**: Export collected data to CSV format
+- **Real-time Logging**: Continuous logging to file during monitoring
+- **Automatic Log Organization**: Logs saved to dedicated `logs/` directory
+- **Timestamped Files**: Automatic filename generation with timestamps
+
 ### Dual Operation Modes
+- **GUI Mode**: Full graphical interface with charts and statistics
+- **Console Mode**: Command-line operation for automation and scripting
 
-- **GUI Mode**: Interactive WPF interface with real-time charts, process selection dropdowns, and comprehensive statistics dashboard
-- **CLI Mode**: Command-line operation with verbose output, CSV logging, and graceful interrupt handling
-- **Unified Sensor System**: Identical performance monitoring capabilities across both modes
-- **Cross-Mode Compatibility**: CSV output format compatible between GUI and CLI modes
+## NVIDIA GPU Requirements
 
-### Performance Monitoring
+### Supported Systems
+- **NVIDIA GPUs**: GeForce, Quadro, Tesla, or RTX series
+- **Driver Version**: NVIDIA drivers with NVML support (typically 385.54 or newer)
+- **Operating System**: Windows with appropriate NVIDIA drivers installed
 
-- **CPU Usage**: Real-time processor utilization tracking per process
-- **Memory Monitoring**: RAM usage in both absolute (MB) and percentage values
-- **GPU Utilization**: Graphics processor core and video engine usage monitoring
-- **VRAM Tracking**: Video memory consumption with detailed usage statistics
-- **Process Detection**: Automatic process discovery with PID information
-- **Exit Monitoring**: Automatic detection when monitored processes terminate
+### NVML Dependencies
+The application requires the NVIDIA Management Library (NVML) for enhanced GPU monitoring:
+- **Library**: `nvml.dll` (included with NVIDIA drivers)
+- **Location**: Typically installed in `C:\Program Files\NVIDIA Corporation\NVSMI\` or system PATH
+- **Fallback**: Application automatically falls back to Windows Performance Counters if NVML is unavailable
 
-### Modern User Experience
+### Detection and Diagnostics
+The application includes automatic NVIDIA GPU detection and diagnostic information:
+- Detects available NVIDIA GPUs on startup
+- Reports GPU model and VRAM capacity
+- Logs diagnostic information to help troubleshoot issues
+- Provides clear error messages for missing drivers or hardware
 
-- **WPF Interface**: Native Windows styling with responsive design
-- **Real-time Charts**: Live performance visualization with multiple chart windows
-- **Interactive Process Selection**: Dropdown-based process selection with search capabilities
-- **Status Indicators**: Color-coded monitoring states and activity feedback
-
-### Developer-Friendly Tools
-
-- **CSV Export**: Structured data logging with timestamps for analysis
-- **Command-line Integration**: Scriptable CLI interface for automation
-- **Flexible Configuration**: Customizable monitoring intervals and duration settings
-
-## User Guide
-
-### Getting Started
-
-#### GUI Mode (Default)
-
-1. Launch Procmon without arguments: `Procmon.exe`
-2. Select a process from the dropdown menu
-3. Configure monitoring settings (interval, duration)
-4. Click start to begin real-time monitoring
-5. View live charts and statistics in the interface
-
-#### CLI Mode
-
-1. Launch with command-line arguments: `Procmon.exe [OPTIONS] [process_name]`
-2. Use `-v` flag for verbose output during monitoring
-3. Monitor data appears in real-time when verbose mode is enabled
-4. Use Ctrl+C for graceful shutdown
-
-### Command-Line Options
-
-- `-d, --duration <seconds>`    Duration of monitoring session (0 for infinite, default: infinite)
-- `-i, --interval <milliseconds>`  Interval between measurements (default: 100ms, minimum: 10ms)  
-- `-f, --filename <path>`       Log file location and name (default: auto-generated)
-- `-v, --verbose`              Print output to console during monitoring
-- `-h, --help`                 Show help message and exit
-
-**Note:** Windows-style arguments (`/d`, `/h`, `/?`) are also supported.
-
-### Managing Monitoring
-
-- **Process Selection**: Choose from running processes or specify by name
-- **Real-time Updates**: Live performance data with automatic refresh
-- **Data Export**: CSV files with comprehensive performance metrics
-- **Graceful Shutdown**: Proper cleanup and data saving on exit
-
-### Tips
-
-- **Administrative Privileges**: May be required for monitoring certain system processes
-- **Resource Usage**: Monitor system impact when using short intervals
-- **Data Storage**: CSV files automatically timestamped to prevent overwrites
-
-## CLI Examples
-
-### Basic Usage
-
-```bash
-# Show help (works in same command prompt)
-Procmon.exe --help
-Procmon.exe -h
-Procmon.exe /?
-
-# Monitor notepad process with verbose output (Ctrl+C to stop)
-Procmon.exe -v notepad
-
-# Monitor for 5 minutes with custom interval and filename
-Procmon.exe -d 300 -i 1000 -f "my_monitoring.csv" chrome
-
-# Interactive process selection (no process name specified)
-Procmon.exe -v
-
-# Monitor specific process for 30 seconds, saving every 500ms
-Procmon.exe --duration 30 --interval 500 --filename "quick_test.csv" firefox
-```
-
-### Advanced Scenarios
-
-```bash
-# Long-term monitoring with detailed logging
-Procmon.exe --duration 3600 --interval 500 --verbose --filename "hourly_monitor.csv" "application.exe"
-
-# Quick performance check
-Procmon.exe -d 60 -i 100 -v chrome
-
-# Background monitoring without console output
-Procmon.exe -d 1800 -i 1000 -f "background_log.csv" notepad
-```
-
-## Implementation & Architecture
-
-### Core Architecture
-
-Procmon follows a clean MVVM (Model-View-ViewModel) architecture built on .NET Framework 4.8 and WPF:
-
-- **Models**: Data structures for performance metrics, process information, and monitoring settings
-- **ViewModels**: Business logic and data binding for UI components with INotifyPropertyChanged implementation
-- **Views**: WPF XAML interfaces with responsive charts and controls
-- **Services**: Dependency-injected services for monitoring, logging, and process management
-- **Sensors**: Hardware-specific implementations for CPU, RAM, GPU, and VRAM monitoring
-
-### Key Components
-
-- **Process Management**: WMI-based process enumeration with intelligent filtering and PID tracking
-- **Performance Sensors**: Hardware abstraction layer for consistent metrics across different system configurations
-- **Chart Visualization**: Real-time WPF charting with zoom, pan, and multi-series support
-- **CSV Logging**: Thread-safe data export with customizable formatting and automatic file management
-- **Console Integration**: AttachConsole() implementation for seamless command-line operation
-
-### Performance Optimizations
-
-- **Background Threading**: All monitoring operations run on background threads to maintain UI responsiveness
-- **Smart Caching**: Process information cached with automatic refresh on process changes
-- **Resource Management**: Proper disposal patterns for WMI objects, file handles, and graphics resources
-- **Memory Efficiency**: Optimized data structures and buffer management for long-term monitoring
-
-## Output Format
-
-CSV files contain the following columns with precise timestamps:
-
-- Timestamp (yyyy-MM-dd HH:mm:ss.fff)
-- CPU Usage (%)
-- RAM Usage (MB)
-- RAM Usage (%)
-- GPU Core Usage (%)
-- GPU Video Usage (%)
-- VRAM Usage (MB)
-- VRAM Usage (%)
-
-## Build Instructions
-
-Building via Visual Studio is straightforward: clone the repository, open the solution file, build, and run!
+## Installation
 
 ### Prerequisites
+- **.NET Framework 4.8** or higher
+- **Windows OS** with appropriate GPU drivers
+- **NVIDIA Drivers** (for enhanced GPU monitoring)
 
-- **Visual Studio 2019** or later with these workloads:
-  - .NET Desktop Development
-  - Windows Presentation Foundation (WPF)
-- **.NET Framework 4.8** SDK
-- **Windows 10** or later for full GPU monitoring support
+### Setup
+1. **Extract Application**: Extract all files to desired directory
+2. **Install Dependencies**: Ensure .NET Framework 4.8 is installed
+3. **GPU Drivers**: Install latest NVIDIA drivers for optimal GPU monitoring
+4. **Permissions**: Run with appropriate permissions for process monitoring
 
-### Dependencies
+## Usage
 
-The project uses the following NuGet packages:
+### GUI Mode
+1. **Launch Application**: Run `Procmon.exe` without arguments
+2. **Select Process**: Choose target process from dropdown
+3. **Configure Settings**: Adjust monitoring interval, duration, and sensors
+4. **Start Monitoring**: Click "Start" to begin data collection
+5. **View Results**: Monitor real-time charts and statistics
+6. **Export Data**: Save collected data to CSV format
 
-- **Mono.Options** (5.3.0.1) - Command-line argument parsing
-- **System.Management** - WMI queries for process and hardware monitoring
-- **Microsoft.Windows.Compatibility** - Enhanced Windows API access
+### Console Mode
+```bash
+# Basic monitoring with verbose output
+Procmon.exe -v notepad
 
-## System Requirements
+# Monitor for specific duration with custom interval
+Procmon.exe -d 300 -i 1000 chrome
 
-- **Operating System**: Windows 10 or later
-- **Framework**: .NET Framework 4.8
-- **Memory**: 512 MB RAM minimum
-- **Storage**: 50 MB available disk space
-- **Privileges**: Administrative privileges may be required for some processes
+# Custom log file location
+Procmon.exe -f "custom-log.csv" -v firefox
 
-## Error Handling
+# Show help
+Procmon.exe -h
+```
 
-The application provides comprehensive error handling for common issues:
+### Command Line Options
+- `-d, --duration <seconds>`: Monitoring duration (0 for infinite)
+- `-i, --interval <milliseconds>`: Data collection interval
+- `-f, --filename <path>`: Custom log file location
+- `-v, --verbose`: Display output to console
+- `-h, --help`: Show usage information
 
-- **Invalid Arguments**: Clear error messages with usage suggestions
-- **Process Access**: Graceful handling of insufficient privileges with alternative recommendations
-- **File System**: Permission and path validation with user-friendly error messages
-- **Hardware Access**: Fallback mechanisms for unavailable performance counters
-- **Network Issues**: Timeout handling for remote process monitoring
+## Configuration
 
-## Technical Notes
+### Monitoring Settings
+- **Duration**: Set monitoring time limit or run indefinitely
+- **Interval**: Adjust data collection frequency (minimum 10ms)
+- **Sensors**: Enable/disable specific monitoring components
+- **Logging**: Configure automatic file logging
 
-### Console Mode Operation
+### File Organization
+- **Logs Directory**: All log files saved to `logs/` subdirectory
+- **Automatic Creation**: Log directory created automatically at startup
+- **File Naming**: Automatic timestamped filename generation
+- **Process-Specific**: Log files include monitored process name
 
-- **Same Command Prompt**: Uses `AttachConsole()` to stay in the original command prompt instead of opening a new window
-- **Enhanced Help**: Comprehensive help with examples and proper formatting
-- **Proper Ctrl+C Handling**: Graceful shutdown that returns control to the command prompt properly
-- **Responsive Interruption**: Can be stopped quickly even with long intervals (sleeps in 50ms chunks)
+## Technical Details
 
-### GUI Mode Features
+### Architecture
+- **MVVM Pattern**: Clean separation of UI and business logic
+- **Service Layer**: Modular sensor and data management
+- **Async Operations**: Non-blocking UI with proper threading
+- **Resource Management**: Automatic cleanup and disposal
 
-- **Real-time Visualization**: Live performance charts with customizable time ranges
-- **Process Management**: Interactive process selection with search and filter capabilities
-- **Statistics Dashboard**: Comprehensive analytics including averages, peaks, and trends
-- **Export Functionality**: Multiple export formats with customizable data ranges
-- **Settings Persistence**: User preferences saved between sessions
+### NVIDIA Sensor Implementation
+- **Primary Sensors**: NVML-based sensors in `Sensors\Nvidia\` namespace
+- **Wrapper Sensors**: Main GPU sensors with automatic fallback logic
+- **Interop Layer**: P/Invoke declarations for NVML functions
+- **Detection Utilities**: GPU capability detection and diagnostics
 
-### Cross-Mode Compatibility
+### Performance Considerations
+- **Efficient Data Collection**: Optimized sensor polling
+- **Memory Management**: Circular buffer for chart data
+- **Thread Safety**: Proper synchronization for multi-threaded access
+- **Resource Cleanup**: Automatic disposal of sensors and services
 
-- **Unified Data Format**: Identical CSV structure regardless of operation mode
-- **Consistent Sensors**: Same performance monitoring algorithms in both modes
-- **Shared Configuration**: Settings and preferences apply to both GUI and CLI modes
+## Troubleshooting
+
+### NVIDIA GPU Issues
+**Problem**: GPU sensors show zero values
+**Solutions**:
+- Verify NVIDIA drivers are installed and up-to-date
+- Check that NVML is available (usually installed with drivers)
+- Run application with administrator privileges if needed
+- Check Windows Event Log for detailed error messages
+
+**Problem**: NVML initialization fails
+**Solutions**:
+- Ensure NVIDIA GPU is properly detected by Windows
+- Update to latest NVIDIA drivers
+- Verify `nvml.dll` is accessible in system PATH
+- Application will automatically fall back to Performance Counters
+
+### General Troubleshooting
+**Problem**: Process access denied
+**Solutions**:
+- Run application as administrator
+- Select processes with visible windows
+- Ensure target process is not protected by system security
+
+**Problem**: Performance counters unavailable
+**Solutions**:
+- Verify Windows Performance Counters are enabled
+- Run `lodctr /R` to rebuild counter registry (as admin)
+- Restart Windows Management Instrumentation service
+
+## File Structure
+
+```
+Procmon/
+    Procmon.exe                         # Main application
+    logs/                               # Auto-created log directory
+    Sensors/
+        CpuSensor.cs                    # CPU monitoring
+        RamSensor.cs                    # Memory monitoring
+        GpuCoreSensor.cs                # GPU core (with NVIDIA support)
+        GpuVideoSensor.cs               # GPU video engine
+        GpuVramSensor.cs                # GPU memory
+        Nvidia/                         # NVIDIA-specific implementations
+            NvidiaGpuCoreSensor.cs
+            NvidiaGpuVideoSensor.cs
+            NvidiaGpuVramSensor.cs
+            NvmlInterop.cs              # NVML P/Invoke definitions
+            NvidiaDetection.cs          # GPU detection utilities
+    Services/                           # Core services
+    ViewModels/                         # MVVM view models
+    Views/                              # WPF user interface
+    Models/                             # Data models
+```
+
+## Version History
+
+### Latest Version
+- **Enhanced NVIDIA Support**: Added NVML-based GPU monitoring with fallback
+- **Improved VRAM Detection**: Real GPU memory size detection
+- **Better Error Handling**: Graceful fallback for unsupported hardware
+- **Automatic Log Directory**: Logs folder created at startup
+- **Diagnostic Information**: GPU detection and capability reporting
+
+## Support
+
+For issues, feature requests, or questions:
+1. Check the troubleshooting section above
+2. Review Windows Event Log for detailed error messages
+3. Verify system requirements and dependencies
+4. Test with administrator privileges if needed
 
 ## License
 
-This project is licensed under the [**CC BY-NC-SA 4.0**](https://creativecommons.org/licenses/by-nc-sa/4.0/) license.
+This project is provided as-is for educational and monitoring purposes.

@@ -1,28 +1,43 @@
 using System;
 using System.Diagnostics;
+using Procmon.Sensors.Nvidia;
 
 namespace Procmon.Sensors
 {
     /// <summary>
-    /// Sensor for monitoring GPU Core usage
+    /// Sensor for monitoring GPU Core usage with NVIDIA GPU priority
     /// </summary>
-    public class GpuCoreSensor
+    public class GpuCoreSensor : IDisposable
     {
         private readonly PerformanceCounter counter;
+        private readonly NvidiaGpuCoreSensor nvidiaCoreSensor;
+        private bool disposed = false;
         
-        public string Name => "GPU Core";
+        public string Name => nvidiaCoreSensor?.Name ?? "GPU Core";
 
         public GpuCoreSensor()
         {
+            // Try NVIDIA sensor first
             try
             {
-                // Try to create a performance counter for GPU usage
-                // This may not work on all systems
-                counter = new PerformanceCounter("GPU Engine", "Utilization Percentage", "_engtype_3D");
+                nvidiaCoreSensor = new NvidiaGpuCoreSensor();
             }
             catch
             {
-                counter = null;
+                nvidiaCoreSensor = null;
+            }
+
+            // Fallback to performance counter if NVIDIA sensor fails
+            if (nvidiaCoreSensor == null)
+            {
+                try
+                {
+                    counter = new PerformanceCounter("GPU Engine", "Utilization Percentage", "_engtype_3D");
+                }
+                catch
+                {
+                    counter = null;
+                }
             }
         }
 
@@ -33,15 +48,19 @@ namespace Procmon.Sensors
         {
             try
             {
+                // Prefer NVIDIA sensor if available
+                if (nvidiaCoreSensor != null)
+                {
+                    return nvidiaCoreSensor.NextValue();
+                }
+                
+                // Fallback to performance counter
                 if (counter != null)
                 {
                     return counter.NextValue();
                 }
-                else
-                {
-                    // Return a simulated value if GPU counters are not available
-                    return 0f;
-                }
+                
+                return 0f;
             }
             catch
             {
@@ -51,7 +70,21 @@ namespace Procmon.Sensors
 
         public void Dispose()
         {
-            counter?.Dispose();
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                if (disposing)
+                {
+                    nvidiaCoreSensor?.Dispose();
+                    counter?.Dispose();
+                }
+                disposed = true;
+            }
         }
     }
 }

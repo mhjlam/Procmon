@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Procmon.Models;
 using Procmon.Sensors;
+using Procmon.Sensors.Nvidia;
 
 namespace Procmon.Services
 {
@@ -78,6 +79,9 @@ namespace Procmon.Services
                 }, cancellationToken).ConfigureAwait(false);
 
                 sensorsInitialized = true;
+
+                // Log NVIDIA GPU detection status for diagnostics
+                System.Diagnostics.Debug.WriteLine($"NVIDIA GPU Status: {NvidiaDetection.GetNvidiaGpuInfo()}");
             }
             catch (OperationCanceledException)
             {
@@ -169,7 +173,7 @@ namespace Procmon.Services
         }
 
         /// <summary>
-        /// Clean up sensor references (sensors don't implement IDisposable)
+        /// Clean up sensor references and dispose of IDisposable sensors
         /// </summary>
         private void CleanupSensors()
         {
@@ -178,17 +182,22 @@ namespace Procmon.Services
                 // Mark sensors as not initialized first to prevent new data collection attempts
                 sensorsInitialized = false;
                 
-                // Note: The original sensor classes don't implement IDisposable
-                // We just clear the references to allow garbage collection
+                // Dispose of sensors that implement IDisposable
+                gpuSensor?.Dispose();
+                videoSensor?.Dispose();
+                vramSensor?.Dispose();
+                
+                // Clear all references to allow garbage collection
                 cpuSensor = null;
                 ramSensor = null;
                 gpuSensor = null;
                 videoSensor = null;
                 vramSensor = null;
             }
-            catch
+            catch (Exception ex)
             {
-                // Ignore cleanup errors
+                // Log cleanup errors but don't throw
+                System.Diagnostics.Debug.WriteLine($"Error during sensor cleanup: {ex.Message}");
             }
         }
 

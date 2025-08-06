@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel;
+using System.IO;
 
 namespace Procmon.Models
 {
@@ -153,7 +154,10 @@ namespace Procmon.Models
             MonitorGpuVideo = true;
             MonitorGpuVram = true;
             LogToFile = true;
-            LogFileName = $"Procmon-{DateTime.Now:yyyyMMdd_HHmmss}.csv";
+            
+            // Set default log file to logs directory
+            string logsDirectory = Path.Combine(Environment.CurrentDirectory, "logs");
+            LogFileName = Path.Combine(logsDirectory, $"Procmon-{DateTime.Now:yyyyMMdd_HHmmss}.csv");
         }
 
         /// <summary>
